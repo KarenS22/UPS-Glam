@@ -1,0 +1,9 @@
+fastapi==0.110.0
+uvicorn==0.28.0
+numpy==1.26.4
+pillow==10.2.0
+python-multipart==0.0.9
+# pycuda is required for actual GPU hardware acceleration.
+# Note: Installing pycuda requires CUDA Toolkit installed on the host and development tools (gcc/g++).
+# If building on a non-GPU host, the system will use CPU fallbacks automatically.
+pycuda==2024.1
