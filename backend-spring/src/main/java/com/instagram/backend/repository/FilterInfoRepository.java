@@ -1,0 +1,9 @@
+package com.instagram.backend.repository;
+
+import com.instagram.backend.model.FilterInfo;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface FilterInfoRepository extends ReactiveCrudRepository<FilterInfo, String> {
+}
