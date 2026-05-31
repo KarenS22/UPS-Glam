@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # 1. PyCUDA Image Processing Microservice
+  cuda-service:
+    build:
+      context: ./cuda-service
+      dockerfile: Dockerfile
+    container_name: cuda-service
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    networks:
+      - instagram-net
+    restart: unless-stopped
+    # ==================================================================
+    # NVIDIA GPU Hardware Passthrough Configuration:
+    # ------------------------------------------------------------------
+    # If running on a Linux host with an NVIDIA GPU and the 
+    # 'nvidia-container-toolkit' installed, uncomment this section 
+    # to allow the Docker container to leverage the physical GPU.
+    # If left commented, the app automatically switches to CPU / Numpy
+    # simulated acceleration, maintaining 100% functionality.
+    # ==================================================================
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
+  # 2. Spring WebFlux Integration Backend
+  backend-spring:
+    build:
+      context: ./backend-spring
+      dockerfile: Dockerfile
+    container_name: backend-spring
+    ports:
+      - "8080:8080"
+    depends_on:
+      - cuda-service
+    env_file:
+      - .env
+    environment:
+      - CUDA_SERVICE_URL=http://cuda-service:8000
+    networks:
+      - instagram-net
+    volumes:
+      - ./backend-spring/logs:/app/logs
+    restart: unless-stopped
+
+networks:
+  instagram-net:
+    driver: bridge
