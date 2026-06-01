@@ -33,7 +33,7 @@
     </root>
 
     <!-- Application Log Level -->
-    <logger name="com.instagram.backend" level="INFO" additivity="false">
+    <logger name="ec.edu.ups.glam" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
     </logger>
