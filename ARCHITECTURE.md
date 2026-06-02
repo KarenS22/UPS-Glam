@@ -4,7 +4,7 @@ Este documento sirve como manual técnico detallado para que desarrolladores hum
 
 ---
 
-## 🗺️ 1. Arquitectura del Sistema
+##  1. Arquitectura del Sistema
 
 La aplicación está diseñada bajo una **arquitectura de microservicios desacoplados** orquestados mediante contenedores Docker, combinando la programación reactiva no bloqueante en Java y el procesamiento paralelo de alto rendimiento en C++/CUDA.
 
@@ -31,7 +31,7 @@ graph TD
 
 ---
 
-## ⚡ 2. El Orquestador Reactivo (Spring WebFlux)
+##  2. El Orquestador Reactivo (Spring WebFlux)
 
 El backend de Java está construido en su totalidad sobre **Spring Boot 3.2.x y Spring WebFlux** para operar bajo un paradigma de **programación reactiva y asíncrona no bloqueante**.
 
@@ -42,7 +42,7 @@ El backend de Java está construido en su totalidad sobre **Spring Boot 3.2.x y 
 
 ---
 
-## 🔑 3. Seguridad y Autenticación Distribuida
+##  3. Seguridad y Autenticación Distribuida
 
 El backend implementa un sistema híbrido que saca el máximo provecho de Supabase Auth sin sacrificar rendimiento:
 
@@ -54,7 +54,7 @@ El backend implementa un sistema híbrido que saca el máximo provecho de Supaba
 
 ---
 
-## ⚡ 4. El Motor de Procesamiento de Imágenes (PyCUDA & FastAPI)
+##  4. El Motor de Procesamiento de Imágenes (PyCUDA & FastAPI)
 
 El procesamiento pesado de imágenes está completamente delegado al microservicio en Python (`cuda-service`), combinando **FastAPI** (asíncrono) con la potencia de compilación dinámica de **PyCUDA**.
 
@@ -74,17 +74,18 @@ El procesamiento pesado de imágenes está completamente delegado al microservic
 
 ---
 
-## 🖥️ 5. Algoritmos CUDA y Mecanismo de Fallback Inteligente
+##  5. Algoritmos CUDA y Mecanismo de Fallback Inteligente
 
 El archivo **`filters.py`** es el corazón matemático del servicio de imágenes y contiene dos motores de procesamiento:
 
 ### 1. El Motor de Hardware (CUDA)
 Utiliza kernels escritos en C++ y compilados al vuelo (Just-In-Time) por el compilador `nvcc` de NVIDIA a través de `pycuda.compiler.SourceModule`.
 - **Filtros Soportados**:
-  - `grayscale`: Pondera los canales RGB con los coeficientes de luminancia `0.299f * R + 0.587f * G + 0.114f * B`.
-  - `sepia`: Aplica la matriz de transformación clásica de sepia sobre cada píxel.
-  - `invert`: Invierte los canales de color mediante la resta `255 - pixel`.
-  - `blur`: Aplica una convolución de desenfoque de caja (Box Blur) calculando el promedio de la vecindad del píxel de manera paralela en miles de hilos de la GPU.
+  - `blur`: Box Blur Filter (Convolución paralela).
+  - `sharpen`: Sharpen Filter (Enfoque de detalles).
+  - `sobel`: Detección de bordes (Sobel operator).
+  - `cartooning`: Efecto caricatura (Posterización).
+  - `tricolor`, `stripe_overlay`, `recuerdo_historico`: Filtros temáticos con la identidad visual de la UPS.
 
 ### 2. El Motor de Fallback (CPU / Numpy)
 Dado que muchos entornos de desarrollo local no disponen de una tarjeta gráfica NVIDIA física, el microservicio está dotado de un **mecanismo de fallback automático**. 
@@ -99,7 +100,7 @@ Esto garantiza que el proyecto sea **100% funcional y testeable localmente** en 
 
 ---
 
-## 💾 6. Base de Datos Relacional (PostgreSQL)
+##  6. Base de Datos Relacional (PostgreSQL)
 
 El esquema de base de datos (`schema.sql`) está optimizado para integridad relacional y almacenamiento de telemetría de hardware:
 
@@ -107,13 +108,13 @@ El esquema de base de datos (`schema.sql`) está optimizado para integridad rela
 2. **`publications`**: Registra las publicaciones creadas por los usuarios, almacenando la URL de Supabase Storage de la imagen y el pie de foto.
 3. **`comments`**: Relación 1:N con publicaciones para registrar comentarios secuenciales ordenados por fecha de creación.
 4. **`likes`**: Tabla intermedia que maneja la relación N:M entre perfiles y publicaciones para registrar qué usuario le dio me gusta a qué post.
-5. **`filter_info`**: Catálogo semilla que define los filtros disponibles (`grayscale`, `sepia`, `invert`, `blur`).
+5. **`filters`**: Catálogo semilla que define los filtros disponibles (`blur`, `sharpen`, `sobel`, `cartooning`, `tricolor`, `stripe_overlay`, `recuerdo_historico`).
 6. **`processing_history`**: Registra cada operación de filtrado realizada por los usuarios, guardando la ruta de la imagen original, la resultante y el tipo de filtro aplicado.
-7. **`gpu_metrics`**: Tabla de alta precisión técnica vinculada al historial. Registra el tiempo de kernel (milisegundos), tiempos H2D/D2H, uso de memoria de la GPU (en bytes) y un flag indicando si la operación fue ejecutada nativamente por hardware GPU o simulada en CPU.
+7. **`gpu_metrics`**: Tabla de alta precisión técnica vinculada al historial. Registra el tiempo de kernel (milisegundos), dimensiones de Grid/Block, hilos totales, uso de memoria de la GPU (en bytes) y un flag indicando si la operación fue ejecutada nativamente por hardware GPU o simulada en CPU.
 
 ---
 
-## 📖 7. Guía para Sesiones de IA y Desarrolladores Futuros
+##  7. Guía para Sesiones de IA y Desarrolladores Futuros
 
 Si retomas este proyecto en una nueva sesión o deseas ampliarlo, ten en cuenta estas directrices clave:
 
@@ -130,7 +131,7 @@ Si retomas este proyecto en una nueva sesión o deseas ampliarlo, ten en cuenta 
 
 ---
 
-## 🖼️ 8. Optimización de Imágenes en Clientes (Web y Móvil)
+##  8. Optimización de Imágenes en Clientes (Web y Móvil)
 
 Para evitar la sobrecarga del ancho de banda y mitigar problemas de rendimiento o bloqueos por falta de memoria (Out-of-Memory / OOM) en dispositivos con recursos limitados, el sistema cuenta con una estrategia de optimización híbrida de imágenes en la capa de presentación (clientes):
 
