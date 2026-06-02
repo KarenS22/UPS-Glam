@@ -1,4 +1,4 @@
-# Guía de Arquitectura y Funcionamiento Detallado - Instagram Clone Reactive Backend
+# Guía de Arquitectura y Funcionamiento Detallado - UPS Glam
 
 Este documento sirve como manual técnico detallado para que desarrolladores humanos, colaboradores y agentes de Inteligencia Artificial en futuras sesiones puedan comprender en profundidad el diseño de software, los flujos de datos y la integración de hardware de esta aplicación.
 
