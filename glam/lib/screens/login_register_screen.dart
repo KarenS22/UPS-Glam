@@ -286,7 +286,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                             if (val == null || val.trim().isEmpty) {
                               return 'Por favor ingresa tu correo electrónico';
                             }
-                            if (!RegExp(
+                            if (!_isLogin && !RegExp(
                               r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                             ).hasMatch(val.trim())) {
                               return 'Por favor ingresa un correo electrónico válido';
@@ -327,7 +327,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                             if (val == null || val.isEmpty) {
                               return 'Por favor ingresa tu contraseña';
                             }
-                            if (val.length < 6) {
+                            if (!_isLogin && val.length < 6) {
                               return 'La contraseña debe tener al menos 6 caracteres';
                             }
                             return null;
