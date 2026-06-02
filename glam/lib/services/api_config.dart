@@ -13,7 +13,7 @@ class ApiConfig {
       return '/api';
     }
 
-    return 'http://192.168.1.24:8080/api';
+    return 'http://10.121.4.190:8080/api';
   }
 
   static set customBaseUrl(String url) {
