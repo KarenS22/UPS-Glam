@@ -13,7 +13,7 @@ class ApiConfig {
       return '/api';
     }
 
-    return 'http://10.121.4.190:8080/api';
+    return 'https://03vcqqp7-8080.brs.devtunnels.ms/api';
   }
 
   static set customBaseUrl(String url) {
