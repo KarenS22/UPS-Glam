@@ -425,7 +425,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       // Username Input Field
                       Text(
-                        'Nombre de Usuario (Seudónimo)',
+                        'Nombre de Usuario ',
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[400]),
                       ),
                       const SizedBox(height: 6),
@@ -463,7 +463,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       // Full Name Input Field
                       Text(
-                        'Nombre Completo',
+                        'Nombre',
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[400]),
                       ),
                       const SizedBox(height: 6),

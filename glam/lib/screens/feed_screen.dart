@@ -376,7 +376,7 @@ class _FeedScreenState extends State<FeedScreen> {
                         ),
                         SizedBox(height: 16),
                         Text(
-                          'Sincronizando Muro...',
+                          'Preparando tu feed...',
                           style: TextStyle(
                             fontFamily: 'Outfit',
                             color: Color(0xFF14396A),
@@ -397,7 +397,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.memory,
+                              Icons.image_search,
                               size: 48,
                               color: Colors.white,
                             ),
@@ -603,7 +603,7 @@ class _FeedScreenState extends State<FeedScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
-                            Icons.memory,
+                            Icons.tune,
                             size: 11,
                             color: Color(0xFF14396A), // Contrast flat blue
                           ),

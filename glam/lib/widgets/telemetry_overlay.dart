@@ -74,7 +74,7 @@ class TelemetryOverlay extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Telemetría GPU',
+                    'Detalles de Procesamiento',
                     style: TextStyle(
                       fontFamily: 'monospace',
                       fontWeight: FontWeight.bold,
@@ -96,7 +96,7 @@ class TelemetryOverlay extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  isCudaSimulated ? 'CPU SIM' : 'GPU NATIVA',
+                  isCudaSimulated ? 'MODO COMPATIBLE (CPU)' : 'GPU NATIVA',
                   style: const TextStyle(
                     fontSize: 8,
                     fontWeight: FontWeight.bold,
@@ -169,11 +169,11 @@ class TelemetryOverlay extends StatelessWidget {
             gaugeColor: Colors.white,
           ),
 
-          // 6. Memoria VRAM usada
+          // 6. Memoria gráfica usada
           _buildMetricGaugeRow(
             icon: Icons.storage,
             iconColor: Colors.white,
-            label: 'Memoria VRAM Usada',
+            label: 'Uso de Memoria Gráfica',
             value: _formatBytes(vramBytes),
             ratio: (vramBytes / 8388608.0).clamp(0.0, 1.0),
             gaugeColor: Colors.white,

@@ -668,7 +668,7 @@ class _FilterStudioScreenState extends State<FilterStudioScreen> {
                             Text(
                               _loadingPreviews
                                   ? 'Cargando previsualización...'
-                                  : 'Previsualización instantánea (3x3)',
+                                  : 'Previsualización instantánea',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
