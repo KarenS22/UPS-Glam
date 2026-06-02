@@ -23,6 +23,12 @@ class _FeedScreenState extends State<FeedScreen> {
 
   // Track expanded comments by publication ID: { pubId: commentsList }
   final Map<int, List<CommentItem>> _commentsMap = {};
+  // Track which page we are on for each publication's comments
+  final Map<int, int> _commentsPageMap = {};
+  // Track if there are more comments to load for each publication
+  final Map<int, bool> _hasMoreCommentsMap = {};
+  // Track if we are currently loading more comments for each publication
+  final Map<int, bool> _loadingMoreMap = {};
   // Track which publication has comments drawer open
   int? _activeCommentsPubId;
   final TextEditingController _commentController = TextEditingController();
@@ -150,18 +156,45 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  Future<void> _fetchComments(int pubId) async {
+  Future<void> _fetchComments(int pubId, {bool isLoadMore = false}) async {
+    if (isLoadMore && (_loadingMoreMap[pubId] == true)) return;
+
     try {
-      final comments = await ApiService.fetchComments(widget.token, pubId);
+      if (isLoadMore) {
+        setState(() => _loadingMoreMap[pubId] = true);
+      }
+
+      final int page = isLoadMore ? (_commentsPageMap[pubId] ?? 0) + 1 : 0;
+      const int size = 8;
+      
+      final comments = await ApiService.fetchComments(widget.token, pubId, page: page, size: size);
+      
       setState(() {
-        _commentsMap[pubId] = comments;
+        if (isLoadMore) {
+          _commentsMap[pubId] = [...(_commentsMap[pubId] ?? []), ...comments];
+          _commentsPageMap[pubId] = page;
+          _loadingMoreMap[pubId] = false;
+        } else {
+          _commentsMap[pubId] = comments;
+          _commentsPageMap[pubId] = 0;
+        }
+        // If we got fewer comments than requested, there are likely no more
+        _hasMoreCommentsMap[pubId] = comments.length == size;
       });
     } catch (err) {
-      // Fallback empty list
-      setState(() {
-        _commentsMap[pubId] = [];
-      });
+      if (isLoadMore) {
+        setState(() => _loadingMoreMap[pubId] = false);
+      } else {
+        setState(() {
+          _commentsMap[pubId] = [];
+          _hasMoreCommentsMap[pubId] = false;
+        });
+      }
     }
+  }
+
+  Future<void> _fetchMoreComments(int pubId) async {
+    await _fetchComments(pubId, isLoadMore: true);
   }
 
   Future<void> _handleAddComment(int pubId) async {
@@ -175,15 +208,14 @@ class _FeedScreenState extends State<FeedScreen> {
 
       await ApiService.addComment(widget.token, pubId, text);
 
-      // Reload comments
+      // Reload comments (will fetch the latest descending page)
       await _fetchComments(pubId);
 
       // Force feed update to keep count in sync
       setState(() {
         final itemIdx = _feedItems.indexWhere((x) => x.publication.id == pubId);
         if (itemIdx != -1) {
-          // comments count is derived locally from commentsMap if expanded,
-          // but we also trigger state update
+          _feedItems[itemIdx].commentsCount++;
         }
       });
     } catch (err) {
@@ -430,9 +462,7 @@ class _FeedScreenState extends State<FeedScreen> {
     // Check if filter is applied
     final bool isFiltered = pub.processedImageUrl != null && pub.processedImageUrl!.isNotEmpty;
 
-    final int commentsCount = _commentsMap.containsKey(pub.id)
-        ? _commentsMap[pub.id]!.length
-        : 0; // derived locally if loaded, or defaults to 0 initially
+    final int commentsCount = item.commentsCount;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24.0),
@@ -773,9 +803,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        _commentsMap.containsKey(pub.id)
-                            ? '$commentsCount'
-                            : '...',
+                        '$commentsCount',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -841,7 +869,7 @@ class _FeedScreenState extends State<FeedScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Comentarios (${comments != null ? comments.length : 0})',
+                'Comentarios (${_feedItems.firstWhere((x) => x.publication.id == pubId).commentsCount})',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[400],
@@ -879,49 +907,76 @@ class _FeedScreenState extends State<FeedScreen> {
           else
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 180),
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const ClampingScrollPhysics(),
-                itemCount: comments.length,
-                itemBuilder: (context, idx) {
-                  final dto = comments[idx];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            style: const TextStyle(fontSize: 12.5),
-                            children: [
-                              TextSpan(
-                                text: '@${dto.user.username} ',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () => _navigateToProfile(dto.user),
-                              ),
-                              TextSpan(
-                                text: dto.comment.content,
-                                style: TextStyle(color: Colors.grey[300]),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _formatDate(dto.comment.createdAt),
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (scrollInfo) {
+                  if (scrollInfo.metrics.pixels >= 
+                          scrollInfo.metrics.maxScrollExtent - 50 &&
+                      _hasMoreCommentsMap[pubId] == true &&
+                      _loadingMoreMap[pubId] != true) {
+                    _fetchMoreComments(pubId);
+                  }
+                  return false;
                 },
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: comments.length + (_loadingMoreMap[pubId] == true ? 1 : 0),
+                  itemBuilder: (context, idx) {
+                    if (idx == comments.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Center(
+                          child: SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    final dto = comments[idx];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              style: const TextStyle(fontSize: 12.5),
+                              children: [
+                                TextSpan(
+                                  text: '@${dto.user.username} ',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => _navigateToProfile(dto.user),
+                                ),
+                                TextSpan(
+                                  text: dto.comment.content,
+                                  style: TextStyle(color: Colors.grey[300]),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatDate(dto.comment.createdAt),
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
 

@@ -112,9 +112,9 @@ class ApiService {
   }
 
   // Get Comments
-  static Future<List<CommentItem>> fetchComments(String token, int pubId) async {
+  static Future<List<CommentItem>> fetchComments(String token, int pubId, {int page = 0, int size = 10}) async {
     final response = await http.get(
-      Uri.parse(ApiConfig.publicationComments(pubId)),
+      Uri.parse('${ApiConfig.publicationComments(pubId)}?page=$page&size=$size'),
       headers: {
         'Authorization': 'Bearer $token',
       },

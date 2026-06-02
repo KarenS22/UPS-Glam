@@ -136,6 +136,7 @@ class FeedItem {
   final Publication publication;
   final User creator;
   int likesCount;
+  int commentsCount;
   bool isLikedByMe;
   bool animateHeart; // Local UI state
 
@@ -143,6 +144,7 @@ class FeedItem {
     required this.publication,
     required this.creator,
     required this.likesCount,
+    required this.commentsCount,
     required this.isLikedByMe,
     this.animateHeart = false,
   });
@@ -152,6 +154,7 @@ class FeedItem {
       publication: Publication.fromJson(json['publication'] ?? {}),
       creator: User.fromJson(json['creator'] ?? {}),
       likesCount: json['likesCount'] ?? json['likes_count'] ?? 0,
+      commentsCount: json['commentsCount'] ?? json['comments_count'] ?? 0,
       isLikedByMe: json['isLikedByMe'] ?? json['is_liked_by_me'] ?? false,
     );
   }
