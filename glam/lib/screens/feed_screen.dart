@@ -23,7 +23,7 @@ class _FeedScreenState extends State<FeedScreen> {
   String _error = '';
 
   // Track expanded comments by publication ID: { pubId: commentsList }
-  final Map<int, List<CommentItem>> _commentsMap = {};
+  final Map<int, List<CommentItem>?> _commentsMap = {};
   // Track which page we are on for each publication's comments
   final Map<int, int> _commentsPageMap = {};
   // Track if there are more comments to load for each publication
@@ -33,9 +33,12 @@ class _FeedScreenState extends State<FeedScreen> {
   // Track which publication has comments drawer open
   int? _activeCommentsPubId;
   final TextEditingController _commentController = TextEditingController();
+  
+  // Track if we are currently loading initial comments for each publication
+  final Map<int, bool> _loadingCommentsMap = {};
 
   // Track expanded metrics by publication ID: { pubId: metricsObject }
-  final Map<int, GpuMetrics> _metricsMap = {};
+  final Map<int, GpuMetrics?> _metricsMap = {};
   // Track which publication has metrics drawer open
   int? _activeMetricsPubId;
 
@@ -58,6 +61,12 @@ class _FeedScreenState extends State<FeedScreen> {
     setState(() {
       _loading = true;
       _error = '';
+      _commentsMap.clear(); // Clear cache to ensure comments are re-fetched
+      _commentsPageMap.clear();
+      _hasMoreCommentsMap.clear();
+      _loadingMoreMap.clear();
+      _loadingCommentsMap.clear();
+      _activeCommentsPubId = null; // Close any open drawers to avoid stale state
     });
 
     try {
@@ -151,18 +160,22 @@ class _FeedScreenState extends State<FeedScreen> {
       _commentController.clear();
     });
 
-    // Fetch comments if not loaded yet
-    if (!_commentsMap.containsKey(pubId)) {
-      _fetchComments(pubId);
-    }
+    // Always fetch latest comments when opening the drawer
+    _fetchComments(pubId);
   }
 
   Future<void> _fetchComments(int pubId, {bool isLoadMore = false}) async {
     if (isLoadMore && (_loadingMoreMap[pubId] == true)) return;
+    if (!isLoadMore && (_loadingCommentsMap[pubId] == true)) return;
 
     try {
       if (isLoadMore) {
         setState(() => _loadingMoreMap[pubId] = true);
+      } else {
+        setState(() {
+          _loadingCommentsMap[pubId] = true;
+          _commentsMap[pubId] = null; // Reset to show spinner for fresh load
+        });
       }
 
       final int page = isLoadMore ? (_commentsPageMap[pubId] ?? 0) + 1 : 0;
@@ -178,19 +191,21 @@ class _FeedScreenState extends State<FeedScreen> {
         } else {
           _commentsMap[pubId] = comments;
           _commentsPageMap[pubId] = 0;
+          _loadingCommentsMap[pubId] = false;
         }
         // If we got fewer comments than requested, there are likely no more
         _hasMoreCommentsMap[pubId] = comments.length == size;
       });
     } catch (err) {
-      if (isLoadMore) {
-        setState(() => _loadingMoreMap[pubId] = false);
-      } else {
-        setState(() {
-          _commentsMap[pubId] = [];
-          _hasMoreCommentsMap[pubId] = false;
-        });
-      }
+      setState(() {
+        if (isLoadMore) {
+          _loadingMoreMap[pubId] = false;
+        } else {
+          _loadingCommentsMap[pubId] = false;
+          _commentsMap[pubId] = []; // Show empty state on error
+        }
+        _hasMoreCommentsMap[pubId] = false;
+      });
     }
   }
 

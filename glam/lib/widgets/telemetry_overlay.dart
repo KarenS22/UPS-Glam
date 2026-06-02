@@ -63,28 +63,33 @@ class TelemetryOverlay extends StatelessWidget {
         children: [
           // Header: Telemetry Title & Status Badge
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
+              Expanded(
+                child: Row(
+                  children: [
                     Icon(
                       isGpu ? Icons.analytics_outlined : Icons.memory,
                       size: isCompact ? 16 : 20,
                       color: accentColor,
                     ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Detalles de Procesamiento',
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.bold,
-                      fontSize: isCompact ? 13 : 15,
-                      color: accentColor,
-                      letterSpacing: 0.5,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Detalles de Procesamiento',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.bold,
+                          fontSize: isCompact ? 12 : 14,
+                          color: accentColor,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -104,6 +109,8 @@ class TelemetryOverlay extends StatelessWidget {
                   ),
                 ),
               ),
+              // Add space for the close button if not in compact mode (where close button might be elsewhere or smaller)
+              if (!isCompact) const SizedBox(width: 28),
             ],
           ),
           
