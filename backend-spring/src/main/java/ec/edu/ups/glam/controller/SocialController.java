@@ -10,6 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -86,11 +89,17 @@ public class SocialController {
         }
 
         @GetMapping("/comments")
-        public Flux<CommentDto> getComments(@PathVariable Integer publicationId) {
-                log.info("Fetching comments for publication ID: {}", publicationId);
+        public Flux<CommentDto> getComments(
+                        @PathVariable Integer publicationId,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
+                log.info("Fetching comments for publication ID: {}, page: {}, size: {}", publicationId, page, size);
 
-                return commentRepository.findAllByPublicationIdOrderByCreatedAtAsc(publicationId)
-                                .flatMap(comment -> profileRepository.findById(comment.getUserId())
+                Pageable pageable = PageRequest.of(page, size,
+                                Sort.by("createdAt").descending().and(Sort.by("id").descending()));
+
+                return commentRepository.findAllByPublicationId(publicationId, pageable)
+                                .flatMapSequential(comment -> profileRepository.findById(comment.getUserId())
                                                 .map(profile -> CommentDto.builder()
                                                                 .comment(comment)
                                                                 .user(profile)

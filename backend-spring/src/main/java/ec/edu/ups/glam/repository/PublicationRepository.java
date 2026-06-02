@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Repository
 public interface PublicationRepository extends ReactiveCrudRepository<Publication, Integer> {
-    
-    Flux<Publication> findAllByOrderByCreatedAtDesc();
-    
-    Flux<Publication> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
+
+    Flux<Publication> findAllByOrderByCreatedAtDescIdDesc();
+
+    Flux<Publication> findAllByUserIdOrderByCreatedAtDescIdDesc(UUID userId);
 }

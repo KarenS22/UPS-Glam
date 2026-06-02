@@ -15,5 +15,6 @@ public class PublicationFeedDto {
     private Publication publication;
     private Profile creator;
     private Long likesCount;
+    private Long commentsCount;
     private Boolean isLikedByMe;
 }
