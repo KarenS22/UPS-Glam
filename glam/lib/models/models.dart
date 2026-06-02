@@ -40,6 +40,7 @@ class Publication {
   final String imageUrl;
   final String? processedImageUrl;
   final String? filterApplied;
+  final bool isGpu;
   final String createdAt;
 
   Publication({
@@ -48,6 +49,7 @@ class Publication {
     required this.imageUrl,
     this.processedImageUrl,
     this.filterApplied,
+    required this.isGpu,
     required this.createdAt,
   });
 
@@ -58,8 +60,21 @@ class Publication {
       imageUrl: json['imageUrl'] ?? json['image_url'] ?? '',
       processedImageUrl: json['processedImageUrl'] ?? json['processed_image_url'],
       filterApplied: json['filterApplied'] ?? json['filter_applied'],
+      isGpu: json['isGpu'] ?? json['is_gpu'] ?? true,
       createdAt: json['createdAt'] ?? json['created_at'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'caption': caption,
+      'imageUrl': imageUrl,
+      'processedImageUrl': processedImageUrl,
+      'filterApplied': filterApplied,
+      'isGpu': isGpu,
+      'createdAt': createdAt,
+    };
   }
 }
 
@@ -70,6 +85,7 @@ class GpuMetrics {
   final int totalThreads;
   final double executionTimeMs;
   final int memoryUsedBytes;
+  final bool isGpu;
   final String? createdAt;
 
   GpuMetrics({
@@ -79,6 +95,7 @@ class GpuMetrics {
     required this.totalThreads,
     required this.executionTimeMs,
     required this.memoryUsedBytes,
+    required this.isGpu,
     this.createdAt,
   });
 
@@ -90,6 +107,7 @@ class GpuMetrics {
       totalThreads: json['totalThreads'] ?? json['total_threads'] ?? 786432,
       executionTimeMs: (json['executionTimeMs'] ?? json['execution_time_ms'] ?? json['totalGpuTimeMs'] ?? json['total_gpu_time_ms'] ?? 0.0).toDouble(),
       memoryUsedBytes: (json['memoryUsedBytes'] ?? json['memory_used_bytes'] ?? 0),
+      isGpu: json['isGpu'] ?? json['is_gpu'] ?? true,
       createdAt: json['created_at'] ?? json['createdAt'],
     );
   }

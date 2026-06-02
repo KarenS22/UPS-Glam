@@ -350,6 +350,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             totalThreads: 786432,
             executionTimeMs: 1.254,
             memoryUsedBytes: 1572864,
+            isGpu: false,
             createdAt: DateTime.now().toIso8601String(),
           );
         });
@@ -680,7 +681,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      '${(_metricsMap.containsKey(pub.id) && _metricsMap[pub.id]!.executionTimeMs > 15.0) ? 'CPU' : 'GPU'}: ${pub.filterApplied!.toUpperCase()}', // No emoji
+                                      '${(_metricsMap.containsKey(pub.id) && _metricsMap[pub.id]!.isGpu) ? 'GPU' : 'CPU'}: ${pub.filterApplied!.toUpperCase()}', // No emoji
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(

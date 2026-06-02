@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS publications (
     image_url TEXT NOT NULL,
     processed_image_url TEXT,
     filter_applied VARCHAR(50),
+    is_gpu BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS gpu_metrics (
     total_threads BIGINT NOT NULL,
     execution_time_ms DOUBLE PRECISION NOT NULL,
     memory_used_bytes BIGINT NOT NULL,
+    is_gpu BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

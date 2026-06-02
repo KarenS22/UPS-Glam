@@ -41,6 +41,9 @@ public class GpuMetric {
     @Column("memory_used_bytes")
     private Long memoryUsedBytes;
 
+    @Column("is_gpu")
+    private Boolean isGpu;
+
     @Column("created_at")
     @Builder.Default
     private Instant createdAt = Instant.now();

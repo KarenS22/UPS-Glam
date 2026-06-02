@@ -35,6 +35,9 @@ public class Publication {
     @Column("filter_applied")
     private String filterApplied;
 
+    @Column("is_gpu")
+    private Boolean isGpu;
+
     @Column("created_at")
     @Builder.Default
     private Instant createdAt = Instant.now();

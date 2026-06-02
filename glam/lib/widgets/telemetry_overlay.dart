@@ -43,7 +43,7 @@ class TelemetryOverlay extends StatelessWidget {
     final double executionTime = metrics.executionTimeMs;
     final int vramBytes = metrics.memoryUsedBytes;
 
-    final bool isCudaSimulated = executionTime > 15.0;
+    final bool isGpu = metrics.isGpu;
     final Color accentColor = Colors.white;
 
     return Container(
@@ -67,11 +67,11 @@ class TelemetryOverlay extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.analytics_outlined,
-                    size: isCompact ? 16 : 20,
-                    color: accentColor,
-                  ),
+                    Icon(
+                      isGpu ? Icons.analytics_outlined : Icons.memory,
+                      size: isCompact ? 16 : 20,
+                      color: accentColor,
+                    ),
                   const SizedBox(width: 8),
                   Text(
                     'Detalles de Procesamiento',
@@ -96,7 +96,7 @@ class TelemetryOverlay extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  isCudaSimulated ? 'MODO COMPATIBLE (CPU)' : 'GPU NATIVA',
+                  isGpu ? 'GPU NATIVA' : 'CPU SIM',
                   style: const TextStyle(
                     fontSize: 8,
                     fontWeight: FontWeight.bold,
@@ -154,7 +154,7 @@ class TelemetryOverlay extends StatelessWidget {
           _buildMetricRow(
             icon: Icons.waves,
             iconColor: Colors.white,
-            label: 'Hilos Lanzados en GPU',
+            label: isGpu ? 'Hilos Lanzados en GPU' : 'Hilos Simulados (CPU)',
             value: _formatThreads(totalThreads),
             valueColor: Colors.white,
           ),

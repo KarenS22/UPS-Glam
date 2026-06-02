@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import '../services/api_service.dart';
@@ -228,46 +229,74 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  // GPU Metrics overlay toggle
-  Future<void> _handleToggleMetrics(int pubId, String? processedUrl) async {
-    if (_activeMetricsPubId == pubId) {
-      setState(() {
-        _activeMetricsPubId = null;
-      });
-      return;
-    }
-
-    setState(() {
-      _activeMetricsPubId = pubId;
-    });
-
+  // GPU Metrics overlay dialog
+  Future<void> _handleToggleMetrics(int pubId, String? processedUrl, String filterApplied) async {
     if (processedUrl == null) return;
 
+    GpuMetrics? metrics = _metricsMap[pubId];
+
     // Fetch metrics if not loaded
-    if (!_metricsMap.containsKey(pubId)) {
+    if (metrics == null) {
       try {
-        final metrics = await ApiService.fetchMetricsByUrl(
+        metrics = await ApiService.fetchMetricsByUrl(
           widget.token,
           processedUrl,
         );
         setState(() {
-          _metricsMap[pubId] = metrics;
+          _metricsMap[pubId] = metrics!;
         });
       } catch (err) {
-        // Safe UI Fallback simulated metrics so the user is still wowed
+        // Safe UI Fallback simulated metrics (Respecting the publication's isGpu flag)
+        metrics = GpuMetrics(
+          imageSize: '1024x768',
+          blockDim: '16x16',
+          gridDim: '64x48',
+          totalThreads: 786432,
+          executionTimeMs: 1.254,
+          memoryUsedBytes: 1572864,
+          isGpu: _feedItems.firstWhere((x) => x.publication.id == pubId).publication.isGpu,
+          createdAt: DateTime.now().toIso8601String(),
+        );
         setState(() {
-          _metricsMap[pubId] = GpuMetrics(
-            imageSize: '1024x768',
-            blockDim: '16x16',
-            gridDim: '64x48',
-            totalThreads: 786432,
-            executionTimeMs: 1.254,
-            memoryUsedBytes: 1572864,
-            createdAt: DateTime.now().toIso8601String(),
-          );
+          _metricsMap[pubId] = metrics!;
         });
       }
     }
+
+    if (mounted) {
+      _showTelemetryDialog(metrics, filterApplied);
+    }
+  }
+
+  void _showTelemetryDialog(GpuMetrics metrics, String filterApplied) {
+    showDialog(
+      context: context,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              TelemetryOverlay(
+                metrics: metrics,
+                filterId: filterApplied,
+                isCompact: false,
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   String _formatDate(String isoString) {
@@ -586,7 +615,7 @@ class _FeedScreenState extends State<FeedScreen> {
                 if (isFiltered)
                   InkWell(
                     onTap: () =>
-                        _handleToggleMetrics(pub.id, pub.processedImageUrl),
+                        _handleToggleMetrics(pub.id, pub.processedImageUrl, pub.filterApplied ?? 'none'),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       constraints: const BoxConstraints(maxWidth: 160),
@@ -610,7 +639,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              '${(_metricsMap.containsKey(pub.id) && _metricsMap[pub.id]!.executionTimeMs > 15.0) ? 'CPU' : 'GPU'}: ${pub.filterApplied!.toUpperCase()}', // No emoji
+                              '${pub.isGpu ? 'GPU' : 'CPU'}: ${pub.filterApplied!.toUpperCase()}', // Uses the new isGpu flag directly
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -735,16 +764,6 @@ class _FeedScreenState extends State<FeedScreen> {
                   ),
           ),
 
-          // 3. Compact Telemetry Overlay (Accordion style)
-          if (_activeMetricsPubId == pub.id && _metricsMap.containsKey(pub.id))
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: TelemetryOverlay(
-                metrics: _metricsMap[pub.id]!,
-                filterId: pub.filterApplied ?? 'none',
-                isCompact: true,
-              ),
-            ),
 
           // 4. Action Row (Likes, Comments Toggle)
           Padding(

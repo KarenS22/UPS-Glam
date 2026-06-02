@@ -483,7 +483,8 @@ def apply_cuda_filter(img: Image.Image, filter_type: str, kernel_size: str) -> t
         "grid_dim": grid_dim_str,
         "total_threads": total_threads,
         "execution_time_ms": round(kernel_time, 4),
-        "memory_used_bytes": img_size_bytes * total_allocations
+        "memory_used_bytes": img_size_bytes * total_allocations,
+        "is_gpu": True
     }
     
     out_img = Image.fromarray(h_out)
@@ -715,7 +716,8 @@ def apply_cpu_fallback(img: Image.Image, filter_type: str, kernel_size: str) -> 
         "grid_dim": grid_dim_str,
         "total_threads": total_threads,
         "execution_time_ms": round(simulated_kernel, 4),
-        "memory_used_bytes": img_size_bytes * total_allocations
+        "memory_used_bytes": img_size_bytes * total_allocations,
+        "is_gpu": False
     }
     
     return out_img, metrics
